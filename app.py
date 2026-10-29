@@ -166,13 +166,24 @@ def render_sidebar():
         "API keys are held ephemerally in RAM (`st.session_state`) and never logged or written to disk."
     )
 
-    # Initialize session keys if not set
+    # Initialize session keys with defaults from st.secrets if configured
+    default_client_id = ""
+    default_client_secret = ""
+    default_merchant_email = ""
+    try:
+        if hasattr(st, "secrets"):
+            default_client_id = st.secrets.get("PAYPAL_CLIENT_ID", "")
+            default_client_secret = st.secrets.get("PAYPAL_CLIENT_SECRET", "")
+            default_merchant_email = st.secrets.get("PAYPAL_MERCHANT_EMAIL", "")
+    except Exception:
+        pass
+
     if "paypal_client_id" not in st.session_state:
-        st.session_state["paypal_client_id"] = ""
+        st.session_state["paypal_client_id"] = default_client_id
     if "paypal_client_secret" not in st.session_state:
-        st.session_state["paypal_client_secret"] = ""
+        st.session_state["paypal_client_secret"] = default_client_secret
     if "paypal_merchant_email" not in st.session_state:
-        st.session_state["paypal_merchant_email"] = ""
+        st.session_state["paypal_merchant_email"] = default_merchant_email
 
     client_id_val = st.sidebar.text_input(
         "PayPal Sandbox Client ID",
@@ -213,10 +224,10 @@ def render_sidebar():
     # Quick demo credentials shortcut for hackathon judges
     st.sidebar.markdown("### ⚡ Hackathon Quick Test")
     if st.sidebar.button("Fill Demo Sandbox Keys", use_container_width=True):
-        st.session_state["paypal_client_id"] = "demo"
-        st.session_state["paypal_client_secret"] = "demo_secret"
-        st.session_state["paypal_merchant_email"] = "merchant@squadpay.sandbox"
-        st.sidebar.success("Loaded demo Sandbox credentials for rapid evaluation!")
+        st.session_state["paypal_client_id"] = default_client_id or "demo"
+        st.session_state["paypal_client_secret"] = default_client_secret or "demo_secret"
+        st.session_state["paypal_merchant_email"] = default_merchant_email or "merchant@squadpay.sandbox"
+        st.sidebar.success("Loaded Sandbox credentials for rapid evaluation!")
         st.rerun()
 
     st.sidebar.caption("PayPal AI Hackathon 2026 • Local-First Architecture")
