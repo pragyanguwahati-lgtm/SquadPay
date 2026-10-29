@@ -14,7 +14,7 @@ from typing import Dict, List, Optional
 import streamlit as st
 import pandas as pd
 
-from src.parser import parse_game_logs
+from src.parser import parse_game_logs, fallback_parse_game_logs
 from src.calculator import calculate_shares, calculate_detailed_breakdown
 from src.paypal_client import PayPalClient
 
@@ -308,12 +308,12 @@ def main():
                 playtime_map = parse_game_logs(raw_log_content, model=ai_model)
                 st.write(f"Successfully extracted {len(playtime_map)} players from log.")
             except ConnectionError as ce:
-                status.update(label="Ollama connection failed", state="error")
-                st.error(f"🔌 {str(ce)}")
-                st.info(
-                    "💡 Make sure Ollama is running (`ollama serve`) and model is pulled: `ollama pull qwen2.5-coder:7b`."
+                st.warning(
+                    f"🔌 Local Ollama runtime offline: {str(ce)}\n\n"
+                    "⚡ Switched to offline deterministic timestamp parser so you can evaluate the entire pipeline."
                 )
-                return
+                playtime_map = fallback_parse_game_logs(raw_log_content)
+                st.write(f"Offline parser extracted {len(playtime_map)} players: {playtime_map}")
             except Exception as e:
                 status.update(label="Log parsing error", state="error")
                 st.error(f"❌ Error during AI parsing: {str(e)}")

@@ -6,9 +6,10 @@ Exposes parser, calculator, and paypal_client modules.
 from src.calculator import calculate_shares, calculate_detailed_breakdown
 
 try:
-    from src.parser import parse_game_logs
+    from src.parser import parse_game_logs, fallback_parse_game_logs
 except ImportError:
     parse_game_logs = None
+    fallback_parse_game_logs = None
 
 try:
     from src.paypal_client import PayPalClient
@@ -17,7 +18,9 @@ except ImportError:
 
 __all__ = [
     "parse_game_logs",
+    "fallback_parse_game_logs",
     "calculate_shares",
     "calculate_detailed_breakdown",
     "PayPalClient",
 ]
+
