@@ -1,0 +1,15 @@
+[2026-10-15 18:00:12] [Server thread/INFO]: Dedicated server initialized on port 25565
+[2026-10-15 18:05:00] [Server thread/INFO]: Nova[/192.168.1.101:54321] logged in with entity id 101
+[2026-10-15 18:30:00] [Server thread/INFO]: Ghost[/192.168.1.102:54322] logged in with entity id 102
+[2026-10-15 19:00:00] [Server thread/INFO]: Pixel[/192.168.1.103:54323] logged in with entity id 103
+[2026-10-15 19:15:22] [Server thread/INFO]: Nova achieved: [Diamonds!]
+[2026-10-15 19:45:10] [Server thread/INFO]: Ghost defeated Zombie with [Iron Sword]
+[2026-10-15 20:00:00] [Server thread/INFO]: Pixel lost connection: Disconnected
+[2026-10-15 20:00:01] [Server thread/INFO]: Pixel left the game
+[2026-10-15 20:30:00] [Server thread/INFO]: Ghost lost connection: Disconnected
+[2026-10-15 20:30:01] [Server thread/INFO]: Ghost left the game
+[2026-10-15 21:05:00] [Server thread/INFO]: Pixel[/192.168.1.103:54330] logged in with entity id 108
+[2026-10-15 21:35:00] [Server thread/INFO]: Pixel left the game
+[2026-10-15 22:05:00] [Server thread/INFO]: Nova lost connection: Client shutdown
+[2026-10-15 22:05:01] [Server thread/INFO]: Nova left the game
+[2026-10-15 22:06:00] [Server thread/INFO]: World saved successfully. 0 players online.
