@@ -26,3 +26,9 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Node dependencies and artifacts
+node_modules/
+package.json
+package-lock.json
+

@@ -229,17 +229,7 @@
 	
 
 
-<style>
-/* Reveal all animated Framer cards seamlessly */
-[data-framer-name="Party lobby"],
-[data-framer-name="Playtime scan"],
-[data-framer-name="Squad payment rewards"],
-.framer-13pdfs {
-    opacity: 1 !important;
-    transform: none !important;
-    visibility: visible !important;
-}
-</style>
+
 </head>
 
 <body>
@@ -282,6 +272,155 @@
 
     <!-- End of bodyEnd -->
 
+
+<!-- Start of SquadPay Exact Framer Animation Engine -->
+<style>
+/* =========================================================================
+   EXACT FRAMER ANIMATION ENGINE: PROPORTIONAL SQUAD-PAY
+   Matches https://better-branding-015780-5a07103f5.framer.app/
+   ========================================================================= */
+
+html {
+    scroll-behavior: smooth !important;
+}
+
+/* Framer Motion Spring Transitions */
+[data-framer-name="Party lobby"],
+[data-framer-name="Playtime scan"],
+[data-framer-name="Squad payment rewards"] {
+    will-change: transform, opacity;
+    transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Active states when scrolled into view */
+[data-framer-name="Party lobby"].framer-anim-active {
+    opacity: 1 !important;
+    transform: translateY(0px) rotate(2deg) !important;
+}
+
+[data-framer-name="Playtime scan"].framer-anim-active {
+    opacity: 1 !important;
+    transform: translateY(0px) !important;
+}
+
+[data-framer-name="Squad payment rewards"].framer-anim-active {
+    opacity: 1 !important;
+    transform: translateY(0px) !important;
+}
+
+/* Shield / Trophy spring pop */
+.framer-13pdfs {
+    will-change: transform, opacity;
+    transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.framer-13pdfs.framer-anim-active {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
+
+/* Button & Card Micro-Interactions */
+[data-framer-name="Start the quest"],
+[data-framer-name="Replay the quest"] {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, filter 0.25s ease !important;
+    cursor: pointer !important;
+}
+[data-framer-name="Start the quest"]:hover,
+[data-framer-name="Replay the quest"]:hover {
+    transform: translateY(-2px) scale(1.025) !important;
+    box-shadow: 0 0 30px rgba(72, 213, 165, 0.55) !important;
+    filter: brightness(1.08) !important;
+}
+[data-framer-name="Start the quest"]:active,
+[data-framer-name="Replay the quest"]:active {
+    transform: scale(0.98) !important;
+}
+
+[data-framer-name$="player card"],
+[data-framer-name$="payment"] {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
+    cursor: pointer;
+}
+[data-framer-name$="player card"]:hover,
+[data-framer-name$="payment"]:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Smooth anchor hover transitions */
+a[href*="#assemble"], a[href*="#analyze"], a[href*="#settle"] {
+    transition: color 0.2s ease, opacity 0.2s ease !important;
+}
+a[href*="#assemble"]:hover, a[href*="#analyze"]:hover, a[href*="#settle"]:hover {
+    opacity: 1 !important;
+    color: #48d5a5 !important;
+}
+</style>
+
+<script>
+// EXACT SCROLL ANIMATION CONTROLLER
+(function() {
+    function initScrollAnimations() {
+        const targets = [
+            {
+                element: document.querySelector('[data-framer-name="Party lobby"]')
+            },
+            {
+                element: document.querySelector('[data-framer-name="Playtime scan"]')
+            },
+            {
+                element: document.querySelector('[data-framer-name="Squad payment rewards"]')
+            },
+            {
+                element: document.querySelector('.framer-13pdfs')
+            }
+        ];
+
+        function onScroll() {
+            const vh = window.innerHeight;
+            targets.forEach(({ element }) => {
+                if (!element) return;
+                const rect = element.getBoundingClientRect();
+                // Element is active when in the viewport viewing zone (exact match to Framer)
+                const inView = (rect.top < vh * 0.85) && (rect.bottom > vh * 0.15);
+                if (inView) {
+                    element.classList.add('framer-anim-active');
+                } else {
+                    element.classList.remove('framer-anim-active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', () => requestAnimationFrame(onScroll), { passive: true });
+        window.addEventListener('resize', () => requestAnimationFrame(onScroll), { passive: true });
+        
+        // Initial evaluation
+        onScroll();
+        setTimeout(onScroll, 80);
+        setTimeout(onScroll, 300);
+
+        // Smooth scroll navigation for checkpoints
+        document.querySelectorAll('a[href*="#assemble"], a[href*="#analyze"], a[href*="#settle"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                const targetId = href.split('#')[1];
+                if (!targetId) return;
+                const targetElem = document.getElementById(targetId);
+                if (targetElem) {
+                    e.preventDefault();
+                    targetElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initScrollAnimations);
+    } else {
+        initScrollAnimations();
+    }
+})();
+</script>
+<!-- End of SquadPay Exact Framer Animation Engine -->
 </body>
 
 </html>
