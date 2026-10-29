@@ -31,6 +31,7 @@ class PayPalClient:
         self,
         client_id: Optional[str] = None,
         client_secret: Optional[str] = None,
+        merchant_email: Optional[str] = None,
     ) -> None:
         """
         Initializes PayPal client in sandbox mode.
@@ -41,9 +42,12 @@ class PayPalClient:
             client_id = st.session_state.get("paypal_client_id")
         if not client_secret and st is not None and hasattr(st, "session_state"):
             client_secret = st.session_state.get("paypal_client_secret")
+        if not merchant_email and st is not None and hasattr(st, "session_state"):
+            merchant_email = st.session_state.get("paypal_merchant_email")
 
         self.client_id = (client_id or "").strip()
         self.client_secret = (client_secret or "").strip()
+        self.merchant_email = (merchant_email or "").strip()
 
         if not self.client_id or not self.client_secret:
             raise ValueError(
@@ -107,10 +111,11 @@ class PayPalClient:
 
         sanitized_player = "".join(c for c in player_name if c.isalnum() or c in (" ", "_", "-")).strip()
         billing_email = f"{sanitized_player.lower().replace(' ', '.') or 'player'}@squadpay.sandbox"
+        effective_merchant_email = self.merchant_email or "merchant@squadpay.sandbox"
 
         invoice_payload = {
             "merchant_info": {
-                "email": "merchant@squadpay.sandbox",
+                "email": effective_merchant_email,
                 "first_name": "SquadPay",
                 "last_name": "Admin",
                 "business_name": "Proportional Squad-Pay",

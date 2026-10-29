@@ -171,6 +171,8 @@ def render_sidebar():
         st.session_state["paypal_client_id"] = ""
     if "paypal_client_secret" not in st.session_state:
         st.session_state["paypal_client_secret"] = ""
+    if "paypal_merchant_email" not in st.session_state:
+        st.session_state["paypal_merchant_email"] = ""
 
     client_id_val = st.sidebar.text_input(
         "PayPal Sandbox Client ID",
@@ -190,6 +192,14 @@ def render_sidebar():
     )
     st.session_state["paypal_client_secret"] = client_secret_val
 
+    merchant_email_val = st.sidebar.text_input(
+        "Sandbox Business Email (Optional)",
+        value=st.session_state["paypal_merchant_email"],
+        placeholder="sb-xxxx@business.example.com",
+        help="The Sandbox Business account email linked to your app in developer.paypal.com.",
+    )
+    st.session_state["paypal_merchant_email"] = merchant_email_val
+
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 🧠 AI Model Configuration")
     ai_model = st.sidebar.selectbox(
@@ -205,6 +215,7 @@ def render_sidebar():
     if st.sidebar.button("Fill Demo Sandbox Keys", use_container_width=True):
         st.session_state["paypal_client_id"] = "demo"
         st.session_state["paypal_client_secret"] = "demo_secret"
+        st.session_state["paypal_merchant_email"] = "merchant@squadpay.sandbox"
         st.sidebar.success("Loaded demo Sandbox credentials for rapid evaluation!")
         st.rerun()
 
