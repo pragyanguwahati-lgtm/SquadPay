@@ -65,6 +65,15 @@ def parse_game_logs(
     )
 
     try:
+        # Fast 0.3s probe to check if Ollama daemon is active before chat
+        import socket
+        sock = socket.socket()
+        sock.settimeout(0.3)
+        is_closed = sock.connect_ex(("127.0.0.1", 11434)) != 0
+        sock.close()
+        if is_closed:
+            raise ConnectionError("Ollama daemon is offline on 127.0.0.1:11434.")
+
         # Threat Vector 23: SSRF Mitigation - host points to local Ollama daemon only
         client = ollama.Client(host=host)
         response = client.chat(

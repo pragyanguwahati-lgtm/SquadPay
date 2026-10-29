@@ -142,6 +142,10 @@ class PayPalClient:
             },
         }
 
+        # Fast path if invoicing is known to be unsupported
+        if getattr(self, "_invoicing_supported", True) is False:
+            return self._create_sandbox_order(sanitized_player, amount, currency, server_name)
+
         try:
             invoice = paypalrestsdk.Invoice(invoice_payload)
             if invoice.create():
@@ -149,11 +153,13 @@ class PayPalClient:
                 logger.info("Successfully created Sandbox Draft Invoice: %s for %s", invoice_id, sanitized_player)
                 return invoice_id
             else:
+                self._invoicing_supported = False
                 error_msg = str(getattr(invoice, "error", "Unknown PayPal API error"))
                 safe_msg = error_msg.replace(self.client_secret, "[REDACTED]")
                 logger.warning("PayPal Invoicing API unavailable, falling back to PayPal Orders API: %s", safe_msg)
                 return self._create_sandbox_order(sanitized_player, amount, currency, server_name)
-        except Exception as e:
+        except Exception:
+            self._invoicing_supported = False
             logger.info("Invoicing permission not toggled in developer dashboard; utilizing PayPal Orders REST API.")
             return self._create_sandbox_order(sanitized_player, amount, currency, server_name)
 
@@ -170,17 +176,19 @@ class PayPalClient:
         """
         import requests
 
-        token_resp = requests.post(
-            "https://api-m.sandbox.paypal.com/v1/oauth2/token",
-            auth=(self.client_id, self.client_secret),
-            data={"grant_type": "client_credentials"},
-            timeout=10,
-        )
-        if token_resp.status_code != 200:
-            safe_err = token_resp.text.replace(self.client_secret, "[REDACTED]")
-            raise RuntimeError(f"PayPal OAuth Authentication Failed: {safe_err}")
+        if not getattr(self, "_cached_token", None):
+            token_resp = requests.post(
+                "https://api-m.sandbox.paypal.com/v1/oauth2/token",
+                auth=(self.client_id, self.client_secret),
+                data={"grant_type": "client_credentials"},
+                timeout=10,
+            )
+            if token_resp.status_code != 200:
+                safe_err = token_resp.text.replace(self.client_secret, "[REDACTED]")
+                raise RuntimeError(f"PayPal OAuth Authentication Failed: {safe_err}")
+            self._cached_token = token_resp.json().get("access_token")
 
-        token = token_resp.json().get("access_token")
+        token = self._cached_token
 
         order_resp = requests.post(
             "https://api-m.sandbox.paypal.com/v2/checkout/orders",
