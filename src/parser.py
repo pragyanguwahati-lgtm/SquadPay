@@ -14,6 +14,11 @@ import ollama
 logger = logging.getLogger(__name__)
 
 
+def wrap_log_boundaries(log_text: str) -> str:
+    """Encloses untrusted log content in strict boundary tags for LLM defense."""
+    return f"<SERVER_LOG>\n{log_text.strip()}\n</SERVER_LOG>"
+
+
 def parse_game_logs(
     log_text: str,
     model: str = "qwen2.5-coder:7b",
@@ -55,9 +60,7 @@ def parse_game_logs(
 
     user_prompt = (
         "Analyze the following game server log and return the strict JSON mapping of player names to hours played:\n\n"
-        "<SERVER_LOG>\n"
-        f"{log_text.strip()}\n"
-        "</SERVER_LOG>\n\n"
+        f"{wrap_log_boundaries(log_text)}\n\n"
         "Strict JSON output:"
     )
 
@@ -140,9 +143,9 @@ def fallback_parse_game_logs(log_text: str) -> Dict[str, float]:
     player_sessions: Dict[str, List[datetime]] = {}
     player_leaves: Dict[str, List[datetime]] = {}
 
-    ts_pattern = re.compile(r"\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]")
-    join_pattern = re.compile(r":\s+([A-Za-z0-9_]+)(?:\[.*?\])?\s+(?:logged in|joined the game)")
-    leave_pattern = re.compile(r":\s+([A-Za-z0-9_]+)\s+(?:left the game|lost connection|disconnected)", re.IGNORECASE)
+    ts_pattern = re.compile(r"\[?(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]?")
+    join_pattern = re.compile(r"(?:INFO\]?:?\s+)?([A-Za-z0-9_]+)(?:\[.*?\])?\s+(?:logged in|joined the game)")
+    leave_pattern = re.compile(r"(?:INFO\]?:?\s+)?([A-Za-z0-9_]+)\s+(?:left the game|lost connection|disconnected)", re.IGNORECASE)
 
     for line in lines:
         ts_match = ts_pattern.search(line)
