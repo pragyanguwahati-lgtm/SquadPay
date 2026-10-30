@@ -32,3 +32,16 @@ node_modules/
 package.json
 package-lock.json
 
+# Internal planning and specification files (not needed for web runtime)
+docs/
+authentication_architecture.md
+data_security_policies.md
+product_requirements_document.md
+project_memory.md
+security_checklist.md
+security_policies.md
+system_architecture.md
+threat_model.md
+ui_and_design_spec.md
+
+

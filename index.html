@@ -352,7 +352,26 @@ a[href*="#assemble"], a[href*="#analyze"], a[href*="#settle"] {
 }
 a[href*="#assemble"]:hover, a[href*="#analyze"]:hover, a[href*="#settle"]:hover {
     opacity: 1 !important;
-    color: #48d5a5 !important;
+}
+
+/* Permanently remove Made in Framer badge */
+#__framer-badge-container,
+.__framer-badge,
+a[href*="framer.com"],
+div[id*="framer-badge"],
+[data-framer-badge],
+div:has(> a[href*="framer.com"]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0) !important;
+    height: 0 !important;
+    width: 0 !important;
+    position: absolute !important;
+    left: -99999px !important;
+    top: -99999px !important;
+    z-index: -99999 !important;
 }
 </style>
 
@@ -360,6 +379,27 @@ a[href*="#assemble"]:hover, a[href*="#analyze"]:hover, a[href*="#settle"]:hover 
 // EXACT SCROLL ANIMATION CONTROLLER
 (function() {
     function initScrollAnimations() {
+        // Purge Framer badge from DOM
+        function purgeBadge() {
+            const b = document.getElementById('__framer-badge-container');
+            if (b) b.remove();
+            document.querySelectorAll('.__framer-badge, a[href*="framer.com"], div[id*="framer-badge"]').forEach(el => {
+                const parent = el.closest('div[style*="fixed"]');
+                if (parent) parent.remove();
+                el.remove();
+            });
+            document.querySelectorAll('*').forEach(el => {
+                if (el.children.length === 0 && el.textContent && el.textContent.includes('Made in Framer')) {
+                    const host = el.closest('div[style*="fixed"]') || el.closest('a') || el;
+                    host.remove();
+                }
+            });
+        }
+        purgeBadge();
+        const obs = new MutationObserver(purgeBadge);
+        obs.observe(document.documentElement, { childList: true, subtree: true });
+        setInterval(purgeBadge, 150);
+
         const targets = [
             {
                 element: document.querySelector('[data-framer-name="Party lobby"]')

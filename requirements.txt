@@ -1,3 +1,6 @@
 streamlit
 paypalrestsdk
 ollama
+google-genai
+requests
+

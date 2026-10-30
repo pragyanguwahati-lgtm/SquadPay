@@ -155,7 +155,8 @@ def render_sidebar():
         """
         <div style="text-align: center; margin-bottom: 20px;">
             <span style="font-family: 'Orbitron'; font-size: 22px; font-weight: 800; color: #48d5a5;">SQUADPAY</span>
-            <div style="font-size: 11px; color: #a5beb7;">CO-OP FINANCE ENGINE</div>
+            <div style="font-size: 11px; color: #a5beb7; margin-bottom: 8px;">CO-OP FINANCE ENGINE</div>
+            <a href="http://localhost:8000/index.html" target="_blank" style="display: inline-block; font-size: 11px; font-weight: 600; color: #48d5a5; background: rgba(72, 213, 165, 0.1); border: 1px solid rgba(72, 213, 165, 0.3); padding: 4px 10px; border-radius: 6px; text-decoration: none;">🌐 View Animated Landing Page ↗</a>
         </div>
         """,
         unsafe_allow_html=True,
@@ -170,13 +171,18 @@ def render_sidebar():
     default_client_id = ""
     default_client_secret = ""
     default_merchant_email = ""
+    default_gemini_key = ""
     try:
         if hasattr(st, "secrets"):
             default_client_id = st.secrets.get("PAYPAL_CLIENT_ID", "")
             default_client_secret = st.secrets.get("PAYPAL_CLIENT_SECRET", "")
             default_merchant_email = st.secrets.get("PAYPAL_MERCHANT_EMAIL", "")
+            default_gemini_key = st.secrets.get("GEMINI_API_KEY", "")
     except Exception:
         pass
+
+    if not default_gemini_key:
+        default_gemini_key = os.environ.get("GEMINI_API_KEY", "")
 
     if "paypal_client_id" not in st.session_state:
         st.session_state["paypal_client_id"] = default_client_id
@@ -184,6 +190,17 @@ def render_sidebar():
         st.session_state["paypal_client_secret"] = default_client_secret
     if "paypal_merchant_email" not in st.session_state:
         st.session_state["paypal_merchant_email"] = default_merchant_email
+    if "gemini_api_key" not in st.session_state:
+        st.session_state["gemini_api_key"] = default_gemini_key
+
+    gemini_key_val = st.sidebar.text_input(
+        "Google Gemini API Key",
+        type="password",
+        value=st.session_state["gemini_api_key"],
+        placeholder="AIzaSy...",
+        help="Used for cloud-based game log parsing. Held ephemerally in RAM.",
+    )
+    st.session_state["gemini_api_key"] = gemini_key_val
 
     client_id_val = st.sidebar.text_input(
         "PayPal Sandbox Client ID",
@@ -212,13 +229,35 @@ def render_sidebar():
     st.session_state["paypal_merchant_email"] = merchant_email_val
 
     st.sidebar.markdown("---")
-    st.sidebar.markdown("### 🧠 AI Model Configuration")
-    ai_model = st.sidebar.selectbox(
-        "Ollama LLM Model",
-        options=["qwen2.5-coder:7b", "llama3.2:latest", "mistral:latest"],
+    st.sidebar.markdown("### 🧠 AI Log Parser Configuration")
+    ai_provider = st.sidebar.selectbox(
+        "AI Engine Provider",
+        options=[
+            "Google Gemini API (Recommended)",
+            "Local Ollama (Offline / Private)",
+            "Deterministic Parser (Offline Fallback)",
+        ],
         index=0,
-        help="Local AI execution protects gamer privacy by keeping logs offline.",
+        help="Google Gemini API provides rapid structured JSON parsing; Ollama keeps execution local.",
     )
+
+    if "Gemini" in ai_provider:
+        ai_model = st.sidebar.selectbox(
+            "Gemini Model",
+            options=["gemini-2.5-flash", "gemini-3.7-flash"],
+            index=0,
+            help="gemini-2.5-flash is ultra-fast with native structured JSON output.",
+        )
+    elif "Ollama" in ai_provider:
+        ai_model = st.sidebar.selectbox(
+            "Ollama Model",
+            options=["qwen2.5-coder:7b", "llama3.2:latest", "mistral:latest"],
+            index=0,
+            help="Local AI execution keeps logs offline. Requires running Ollama on localhost:11434.",
+        )
+    else:
+        ai_model = "deterministic"
+        st.sidebar.caption("Extracts join/leave timestamps without external AI dependencies.")
 
     st.sidebar.markdown("---")
     # Quick demo credentials shortcut for hackathon judges
@@ -227,15 +266,17 @@ def render_sidebar():
         st.session_state["paypal_client_id"] = default_client_id or "demo"
         st.session_state["paypal_client_secret"] = default_client_secret or "demo_secret"
         st.session_state["paypal_merchant_email"] = default_merchant_email or "merchant@squadpay.sandbox"
-        st.sidebar.success("Loaded Sandbox credentials for rapid evaluation!")
+        if default_gemini_key:
+            st.session_state["gemini_api_key"] = default_gemini_key
+        st.sidebar.success("Loaded credentials for rapid evaluation!")
         st.rerun()
 
-    st.sidebar.caption("PayPal AI Hackathon 2026 • Local-First Architecture")
-    return ai_model
+    st.sidebar.caption("PayPal AI Hackathon 2026 • Local-First & Cloud-Ready")
+    return ai_provider, ai_model, st.session_state["gemini_api_key"]
 
 
 def main():
-    ai_model = render_sidebar()
+    ai_provider, ai_model, gemini_key = render_sidebar()
 
     # Top Hero Header
     st.markdown(
@@ -245,7 +286,7 @@ def main():
             <h1 class="hero-heading">Proportional Squad-Pay</h1>
             <p class="hero-subheading">
                 Transform raw game server logs into fair, playtime-weighted splits.
-                Calculated privately via <strong>local AI (Ollama)</strong> and routed to <strong>PayPal Sandbox Invoicing</strong>.
+                Parsed securely with <strong>Google Gemini API</strong> and routed directly to <strong>PayPal Sandbox Invoicing</strong>.
             </p>
         </div>
         """,
@@ -298,9 +339,9 @@ def main():
     with col2:
         st.markdown("### 2. Execution Pipeline")
         st.markdown(
-            """
+            f"""
             Click below to execute the 3-stage sequence:
-            1. **Local Ollama Agent** extracts player playtime into strict JSON.
+            1. **AI Agent ({ai_provider.split(' ')[0]})** extracts player playtime into structured JSON.
             2. **Financial Engine** applies proportional cost splitting and penny reconciliation.
             3. **PayPal Sandbox** generates individual draft invoices.
             """
@@ -323,23 +364,56 @@ def main():
         st.markdown("### 3. Pipeline Execution Results")
 
         # Step 1: AI Parsing
-        with st.status("Analyzing server log with local AI agent...", expanded=True) as status:
-            st.write(f"Initiating Ollama prompt on model `{ai_model}`...")
+        with st.status("Analyzing server log with AI engine...", expanded=True) as status:
             playtime_map: Dict[str, float] = {}
-            try:
-                playtime_map = parse_game_logs(raw_log_content, model=ai_model)
-                st.write(f"Successfully extracted {len(playtime_map)} players from log.")
-            except ConnectionError as ce:
-                st.warning(
-                    f"🔌 Local Ollama runtime offline: {str(ce)}\n\n"
-                    "⚡ Switched to offline deterministic timestamp parser so you can evaluate the entire pipeline."
-                )
+            if "Gemini" in ai_provider:
+                st.write(f"Initiating Google Gemini parsing on model `{ai_model}`...")
+                try:
+                    playtime_map = parse_game_logs(
+                        raw_log_content,
+                        engine="gemini",
+                        api_key=gemini_key,
+                        model=ai_model,
+                    )
+                    st.write(f"Successfully extracted {len(playtime_map)} players via Gemini ({ai_model}).")
+                except ValueError as ve:
+                    st.warning(
+                        f"⚠️ {str(ve)}\n\n"
+                        "⚡ Switched to offline deterministic timestamp parser so you can evaluate the entire pipeline."
+                    )
+                    playtime_map = fallback_parse_game_logs(raw_log_content)
+                    st.write(f"Offline parser extracted {len(playtime_map)} players: {playtime_map}")
+                except Exception as e:
+                    st.warning(
+                        f"⚠️ Gemini API request failed: {str(e)}\n\n"
+                        "⚡ Switched to offline deterministic timestamp parser so you can evaluate the entire pipeline."
+                    )
+                    playtime_map = fallback_parse_game_logs(raw_log_content)
+                    st.write(f"Offline parser extracted {len(playtime_map)} players: {playtime_map}")
+            elif "Ollama" in ai_provider:
+                st.write(f"Initiating local Ollama prompt on model `{ai_model}`...")
+                try:
+                    playtime_map = parse_game_logs(
+                        raw_log_content,
+                        engine="ollama",
+                        model=ai_model,
+                    )
+                    st.write(f"Successfully extracted {len(playtime_map)} players from log.")
+                except ConnectionError as ce:
+                    st.warning(
+                        f"🔌 Local Ollama runtime offline: {str(ce)}\n\n"
+                        "⚡ Switched to offline deterministic timestamp parser so you can evaluate the entire pipeline."
+                    )
+                    playtime_map = fallback_parse_game_logs(raw_log_content)
+                    st.write(f"Offline parser extracted {len(playtime_map)} players: {playtime_map}")
+                except Exception as e:
+                    status.update(label="Log parsing error", state="error")
+                    st.error(f"❌ Error during AI parsing: {str(e)}")
+                    return
+            else:
+                st.write("Extracting playtime hours using deterministic timestamp parser...")
                 playtime_map = fallback_parse_game_logs(raw_log_content)
-                st.write(f"Offline parser extracted {len(playtime_map)} players: {playtime_map}")
-            except Exception as e:
-                status.update(label="Log parsing error", state="error")
-                st.error(f"❌ Error during AI parsing: {str(e)}")
-                return
+                st.write(f"Deterministic parser extracted {len(playtime_map)} players: {playtime_map}")
 
             # Step 2: Proportional Calculation
             st.write("Calculating proportional shares with exact penny reconciliation...")
